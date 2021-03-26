@@ -298,7 +298,6 @@ KeyScheduleTestVector::create(CipherSuite suite, uint32_t n_epochs)
   tv.initial_init_secret = epoch.init_secret;
 
   for (size_t i = 0; i < n_epochs; i++) {
-    group_context.epoch += 1;
     group_context.tree_hash = random_bytes(suite.digest().hash_size);
     group_context.confirmed_transcript_hash =
       random_bytes(suite.digest().hash_size);
@@ -322,7 +321,6 @@ KeyScheduleTestVector::create(CipherSuite suite, uint32_t n_epochs)
 
       epoch.joiner_secret,
       welcome_secret,
-      epoch.epoch_secret,
       epoch.init_secret,
 
       epoch.sender_data_secret,
@@ -336,6 +334,8 @@ KeyScheduleTestVector::create(CipherSuite suite, uint32_t n_epochs)
 
       epoch.external_priv.public_key,
     });
+
+    group_context.epoch += 1;
   }
 
   return tv;
@@ -352,17 +352,15 @@ KeyScheduleTestVector::verify() const
 
   for (const auto& tve : epochs) {
     // Ratchet forward the key schedule
-    group_context.epoch += 1;
     group_context.tree_hash = tve.tree_hash;
     group_context.confirmed_transcript_hash = tve.confirmed_transcript_hash;
     auto ctx = tls::marshal(group_context);
+    VERIFY_EQUAL("group context", ctx, tve.group_context);
 
     epoch = epoch.next(tve.commit_secret, tve.psk_secret, std::nullopt, ctx);
 
     // Verify the rest of the epoch
     VERIFY_EQUAL("joiner secret", epoch.joiner_secret, tve.joiner_secret);
-    VERIFY_EQUAL("epoch secret", epoch.epoch_secret, tve.epoch_secret);
-    VERIFY_EQUAL("init secret", epoch.init_secret, tve.init_secret);
 
     auto welcome_secret = KeyScheduleEpoch::welcome_secret(
       cipher_suite, tve.joiner_secret, tve.psk_secret);
@@ -382,9 +380,12 @@ KeyScheduleTestVector::verify() const
     VERIFY_EQUAL("membership key", epoch.membership_key, tve.membership_key);
     VERIFY_EQUAL(
       "resumption secret", epoch.resumption_secret, tve.resumption_secret);
+    VERIFY_EQUAL("init secret", epoch.init_secret, tve.init_secret);
 
     VERIFY_EQUAL(
       "external pub", epoch.external_priv.public_key, tve.external_pub);
+
+    group_context.epoch += 1;
   }
 
   return std::nullopt;
