@@ -32,3 +32,18 @@ Conventions
   * `X_priv` is the private key of an asymmetric key pair
   * `X_secret` is a symmetric secret
 
+
+Reverse Firewall
+----------------
+
+* switch to reverse_firewall branch
+* have vcpkg source code available in directory above mlspp
+
+To build:
+
+> make
+> make firewall
+
+to test:
+
+> make test firewall

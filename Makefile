@@ -14,7 +14,7 @@ all: ${BUILD_DIR}
 	cmake --build ${BUILD_DIR} --target mlspp
 
 ${BUILD_DIR}: CMakeLists.txt test/CMakeLists.txt cmd/CMakeLists.txt
-	cmake -B${BUILD_DIR} -DCMAKE_BUILD_TYPE=Debug .
+	cmake -B${BUILD_DIR} -DCMAKE_BUILD_TYPE=Debug . -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
 
 tidy:
 	cmake -B${BUILD_DIR} -DCLANG_TIDY=ON -DCMAKE_BUILD_TYPE=Debug .
