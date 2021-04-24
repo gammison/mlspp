@@ -37,7 +37,7 @@ Reverse Firewall
 ----------------
 
 * switch to reverse_firewall branch
-* have vcpkg source code available in directory above mlspp
+* have [vcpkg](https://github.com/microsoft/vcpkg) source code available in directory above mlspp 
 
 To build:
 
