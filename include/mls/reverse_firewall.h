@@ -6,90 +6,37 @@
 #include <mls/crypto.h>
 
 namespace mls {
+    //   ProtocolVersion version = mls10;
+    //   CipherSuite cipher_suite;
+    //   EncryptedGroupSecrets group_secretss<1..2^32-1>;
+    //   opaque encrypted_group_info<1..2^32-1>;
+    struct RevFirewall{
+        ProtocolVersion version;
+        CipherSuite cipher_suite;
+        std::vector<EncryptedGroupSecrets> secrets
+        bytes encrypted_group_info;
 
-class PendingJoin;
-class Session;
+        RevFirewall();
+        RevFirewall(CipherSuite suite,
+                    const bytes& jointer_secret,
+                    const bytes& psk_secret,
+                    const GroupInfo& group_info);
 
-class Client
-{
-public:
-  Client(CipherSuite suite_in,
-         SignaturePrivateKey sig_priv_in,
-         Credential cred_in,
-         std::optional<KeyPackageOpts> opts_in);
+        bool check_encryption(const bytes& jointer_secret, const bytes& psk_secret);
 
-  Session begin_session(const bytes& group_id) const;
+        void re_randomize(const KeyPackages& kp, const std::optional<bytes>& path_secret);
 
-  PendingJoin start_join() const;
+        TLS_SERIALIZABLE(version, cipher_suite, secrets, encrypted_group_info)
+        TLS_TRAITS(tls::pass, tls::pass, tls::vector<4>, tls::vector<4>)
+    
+        private:
+            bytes _joiner_secret;
+            static KeyAndNonce group_info_key_nonce(CipherSuite suite,
+                                                    const bytes& jointer_secret,
+                                                    const bytes& psk_secret);
 
-private:
-  const CipherSuite suite;
-  const SignaturePrivateKey sig_priv;
-  const Credential cred;
-  const std::optional<KeyPackageOpts> opts;
-};
 
-class PendingJoin
-{
-public:
-  PendingJoin(PendingJoin&& other) noexcept;
-  PendingJoin& operator=(PendingJoin&& other) noexcept;
-  ~PendingJoin();
-  bytes key_package() const;
-  Session complete(const bytes& welcome) const;
-
-private:
-  struct Inner;
-  std::unique_ptr<Inner> inner;
-
-  PendingJoin(Inner* inner);
-  friend class Client;
-};
-
-class Session
-{
-public:
-  Session(Session&& other) noexcept;
-  Session& operator=(Session&& other) noexcept;
-  ~Session();
-
-  // Settings
-  void encrypt_handshake(bool enabled);
-
-  // Message producers
-  bytes add(const bytes& key_package_data);
-  bytes update();
-  bytes remove(uint32_t index);
-  std::tuple<bytes, bytes> commit(const bytes& proposal);
-  std::tuple<bytes, bytes> commit(const std::vector<bytes>& proposals);
-  std::tuple<bytes, bytes> commit();
-
-  // Message consumers
-  bool handle(const bytes& handshake_data);
-
-  // Information about the current state
-  epoch_t current_epoch() const;
-  uint32_t index() const;
-  bytes do_export(const std::string& label,
-                  const bytes& context,
-                  size_t size) const;
-  std::vector<KeyPackage> roster() const;
-  bytes authentication_secret() const;
-
-  // Application message protection
-  bytes protect(const bytes& plaintext);
-  bytes unprotect(const bytes& ciphertext);
-
-protected:
-  struct Inner;
-  std::unique_ptr<Inner> inner;
-
-  Session(Inner* inner);
-  friend class Client;
-  friend class PendingJoin;
-
-  friend bool operator==(const Session& lhs, const Session& rhs);
-  friend bool operator!=(const Session& lhs, const Session& rhs);
-};
-
+    
+    
+    };
 } // namespace mls
