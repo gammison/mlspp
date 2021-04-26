@@ -5,14 +5,22 @@
 #include <mls/credential.h>
 #include <mls/crypto.h>
 
+
+#include <hpke/digest.h>
+#include <hpke/hpke.h>
+#include <hpke/random.h>
+#include <hpke/signature.h>
+
+
+
 namespace mls {
     struct ReverseFirewall{
-        CipherSuite cipher_suite;
+        crypto::CipherSuite cipher_suite;
 
-        ReverseFirewall(CipherSuite suite);
+        ReverseFirewall(crypto::CipherSuite);
 
-        bool check_encryption( bytes& secret, HPKEPublicKey pk);
+        bool check_encryption( bytes&, crypto::HPKEPublicKey);
 
-        void re_randomize(bytes& secret, HPKEPublicKey pk);
+        void re_randomize(bytes&, crypto::HPKEPublicKey);
     };
 } // namespace mls
