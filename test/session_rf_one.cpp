@@ -277,6 +277,7 @@ TEST_CASE("Session with X509 Credential")
     mls::CipherSuite::ID::P256_AES128GCM_SHA256_P256
   };
 
+  //Alice's creation
   std::string alice_name = "alice";
   auto alice_id = bytes(alice_name.begin(), alice_name.end());
 
@@ -286,9 +287,11 @@ TEST_CASE("Session with X509 Credential")
   alice_opts_in.extensions.add(mls::KeyIDExtension{ alice_id });
   mls::Client alice_client(suite, alice_sig_priv, alice_cred, alice_opts_in);
 
+  //Begins a session led by Alice using the following group id
   auto group_id = bytes{ 0, 1, 2, 3 };
   auto alice_session = alice_client.begin_session(group_id);
 
+  //Bob's creation and private key
   std::string bob_name = "bob";
   auto bob_id = bytes(bob_name.begin(), bob_name.end());
   auto bob_sig_priv = mls::SignaturePrivateKey::generate(suite);
@@ -300,11 +303,13 @@ TEST_CASE("Session with X509 Credential")
 
   auto bob_pending_join = bob_client.start_join();
 
-  auto add = alice_session.add(bob_pending_join.key_package());
-  auto [welcome, commit] = alice_session.commit(add);
-  alice_session.handle(commit);
+  //Adding Bob into group; basically Alice recieves Bob's public key (on line 307), checks it over (on lines 308-309), then sends a key_package back to Bob (on line 312)
+  auto add = alice_session.add(bob_pending_join.key_package()); //Alice's Session recieves Bob's key_package and notes it while sending proposal (stored in add); key_package data is within proposal
+  auto [welcome, commit] = alice_session.commit(add);  //Session checks if proposal is a proposal and commits it if so
+  alice_session.handle(commit);  //Handles commit before adding state; checks to make sure the sender is not external, the recieved commit is sent by the Session itself, and if the recieved message is the same as the one that is cached.
 
-  auto bob_session = bob_pending_join.complete(welcome);
+  //Bob's joining complete; Bob is officially added to the session
+  auto bob_session = bob_pending_join.complete(welcome); //Bob recieves key_package shares the same session as Alice
 
   REQUIRE(alice_session.authentication_secret() ==
           bob_session.authentication_secret());
