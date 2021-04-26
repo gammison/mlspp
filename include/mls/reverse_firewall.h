@@ -15,12 +15,12 @@
 
 namespace mls {
     struct ReverseFirewall{
-        crypto::CipherSuite cipher_suite;
+        CipherSuite cipher_suite;
 
-        ReverseFirewall(crypto::CipherSuite);
+        ReverseFirewall(CipherSuite);
 
-        bool check_encryption( bytes&, crypto::HPKEPublicKey);
+        bool check_encryption( bytes&, HPKEPublicKey);
 
-        void re_randomize(bytes&, crypto::HPKEPublicKey);
+        void re_randomize(bytes&, HPKEPublicKey);
     };
 } // namespace mls

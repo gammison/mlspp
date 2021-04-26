@@ -11,21 +11,21 @@ using hpke::Signature; // NOLINT(misc-unused-using-decls)
 
 namespace mls{
 
-ReverseFirewall::ReverseFirewall(crypto::CipherSuite in)
-{
-    cipher_suite = in;
-}
+	ReverseFirewall::ReverseFirewall(CipherSuite in)
+	{
+		cipher_suite = in;
+	}
 
-ReverseFirewall
-ReverseFirewall::check_encryption(bytes& secret, crypto::HPKEPublicKey pk)
-{
-    return false;
-}
+	bool ReverseFirewall::check_encryption(bytes& secret, HPKEPublicKey pk)
+	{
+		auto sec = secret; auto pubkey = pk;
+		return false;
+	}
 
-ReverseFirewall
-ReverseFirewall::re_randomize(bytes& secret, crypto::HKPREPublicKey pk)
-{
-    return;
-}
+	void ReverseFirewall::re_randomize(bytes& secret, HPKEPublicKey pk)
+	{
+		auto sec = secret; auto pubkey = pk;
+		return;
+	}
 
 }
